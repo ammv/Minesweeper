@@ -1,0 +1,197 @@
+﻿<Window x:Class="Minesweeper.WindowFolder.GameWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Minesweeper.WindowFolder"
+        mc:Ignorable="d"
+        Title="Minesweeper" Height="400" Width="Auto"
+        Background="#bdbdbd"
+        BorderBrush="#7b7b7b"
+        BorderThickness="3"
+        WindowStartupLocation="CenterScreen"
+        SizeToContent="WidthAndHeight"
+        Closing="Window_Closing">
+    <Grid>
+        <Grid x:Name="Menu" Visibility="Visible" HorizontalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="25" />
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="25" />
+                <ColumnDefinition Width="5" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="5" />
+                <RowDefinition Height="25" />
+                <RowDefinition Height="100" />
+                <RowDefinition Height="50" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="25" />
+                <RowDefinition Height="5" />
+            </Grid.RowDefinitions>
+            <Image Grid.Row="1" Grid.Column="3"
+                    MouseLeftButtonUp="OpenAccount_Click"
+                    Source="../SourceFolder/images/user.png" Stretch="Uniform" />
+            <Label x:Name="GameTitle" Content="Сапер"
+                   Grid.Row="2" Grid.Column="2"
+                   Style="{DynamicResource MainLabel}" />
+            <Button Width="140"
+                    x:Name="StartBtn"
+                    Click="Start_Click"
+                    Style="{DynamicResource MenuButton}"
+                    Content="Начать"
+                    Grid.Row="3"
+                    Grid.Column="2" />
+            <Grid Grid.Row="4" Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Label Content="Режимы" Grid.Row="0" Grid.Column="1" Style="{DynamicResource Text}"
+                   FontSize="20" />
+                <RadioButton Content="Начиющий 10x10" Grid.Row="1" Grid.Column="1" Style="{DynamicResource MenuRadioButton}" GroupName="mode" HorizontalAlignment="Left"
+                         Checked="ModeMenu_Checked" IsChecked="True" />
+                <RadioButton Content="Средний 16x16" Grid.Row="2" Grid.Column="1" Style="{DynamicResource MenuRadioButton}" GroupName="mode" HorizontalAlignment="Left"
+                         Checked="ModeMenu_Checked" />
+                <RadioButton Content="Эксперт 16x30" Grid.Row="3" Grid.Column="1" Style="{DynamicResource MenuRadioButton}" GroupName="mode" HorizontalAlignment="Left"
+                         Checked="ModeMenu_Checked" />
+                <RadioButton x:Name="UserModeRadioButton" Content="Пользовательский" Grid.Row="4" Grid.Column="1" Style="{DynamicResource MenuRadioButton}" GroupName="mode" HorizontalAlignment="Left"
+                         Checked="ModeMenu_Checked" />
+                <Grid Grid.Row="5" Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30" />
+                        <RowDefinition Height="30" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="75" />
+                        <ColumnDefinition Width="45" />
+                        <ColumnDefinition Width="25" />
+                        <ColumnDefinition Width="25" />
+                    </Grid.ColumnDefinitions>
+
+                    <Label Content="Ширина"
+                       Grid.Row="0" Grid.Column="1"
+                       Style="{DynamicResource Text}"
+                       FontSize="16" />
+                    <Label Content="Высота"
+                       Grid.Row="1" Grid.Column="1"
+                       Style="{DynamicResource Text}"
+                       FontSize="16" />
+                    <Label x:Name="WidthLbl"
+                       Grid.Row="0" Grid.Column="2"
+                       Style="{DynamicResource Text}"
+                       FontSize="16" />
+                    <Label x:Name="HeightLbl"
+                       Grid.Row="1" Grid.Column="2"
+                       Style="{DynamicResource Text}"
+                       FontSize="16" />
+
+                    <!--Set Width-->
+                    <Button Content="+" Grid.Row="0" Grid.Column="3"
+                        Foreground="Green"
+                        Style="{DynamicResource MenuModeButton}"
+                        Click="SetWidth_Click" />
+                    <Button Content="-" Grid.Row="0" Grid.Column="4"
+                        Foreground="Red"
+                        Style="{DynamicResource MenuModeButton}"
+                        Click="SetWidth_Click" />
+                    <!--Set Height-->
+                    <Button Content="+" Grid.Row="1" Grid.Column="3"
+                        Foreground="Green"
+                        Style="{DynamicResource MenuModeButton}"
+                        Click="SetHeight_Click" />
+                    <Button Content="-" Grid.Row="1" Grid.Column="4"
+                        Foreground="Red"
+                        Style="{DynamicResource MenuModeButton}"
+                        Click="SetHeight_Click" />
+                </Grid>
+            </Grid>
+            <Label x:Name="AccountStateLbl" Grid.Row="5" Grid.Column="2"
+                Style="{DynamicResource AccountStatusBar}" />
+        </Grid>
+        <Grid x:Name="Game" Visibility="Hidden" IsEnabled="False" HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0"
+                BorderBrush="#7b7b7b"
+                BorderThickness="3" Margin="-6 -3 -6 0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="50" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="5" />
+                    </Grid.ColumnDefinitions>
+                    <Label x:Name="MinesLbl" Grid.Column="1"
+                       Style="{DynamicResource TopMenuLabel}" />
+                    <Button x:Name="RestartSmile" Grid.Column="2" Style="{DynamicResource RestartSmile}"
+                        Width="36"
+                        Height="36"
+                        Click="RestartSmile_Click">
+                    </Button>
+                    <Label x:Name="TimeLbl" Grid.Column="3"
+                       Style="{DynamicResource TopMenuLabel}" />
+                </Grid>
+            </Border>
+            <Grid x:Name="GameBoard" Grid.Row="1"
+                  Width="Auto" Height="Auto " />
+        </Grid>
+        <Grid x:Name="AccountMenu" Visibility="Hidden" IsEnabled="False" HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="10" />
+                <RowDefinition Height="35" />
+
+                <RowDefinition Height="10" />
+                <RowDefinition Height="35" />
+
+                <RowDefinition Height="10" />
+                <RowDefinition Height="35" />
+
+                <RowDefinition Height="10" />
+                <RowDefinition Height="35" />
+
+                <RowDefinition Height="10" />
+                <RowDefinition Height="35" />
+
+                <RowDefinition Height="10" />
+                <RowDefinition Height="35" />
+
+                <RowDefinition Height="10" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="25" />
+                <ColumnDefinition />
+                <ColumnDefinition Width="25" />
+            </Grid.ColumnDefinitions>
+            <Label
+                Content="{Binding Path=UserAccount.Nickname,TargetNullValue=Ошибка}"
+                Grid.Row="1" Grid.Column="1"
+                Style="{DynamicResource AccountMainLabel}" />
+            <Label
+                Content="{Binding Path=UserAccount.ID,TargetNullValue=Ошибка}"
+                Grid.Row="3" Grid.Column="1"
+                ContentStringFormat="ID: {0}"
+                Style="{DynamicResource AccountDataLabel}" />
+            <Label
+                Content="{Binding Path=UserAccount.Email,TargetNullValue=Ошибка}"
+                Grid.Row="5" Grid.Column="1"
+                ContentStringFormat="Email: {0}"
+                Style="{DynamicResource AccountDataLabel}" />
+            <Label
+                Content="{Binding Path=UserAccount.Password,TargetNullValue=Ошибка}"
+                Grid.Row="7" Grid.Column="1"
+                ContentStringFormat="Password: {0}"
+                Style="{DynamicResource AccountDataLabel}" />
+        </Grid>
+    </Grid>
+</Window>

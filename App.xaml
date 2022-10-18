@@ -1,0 +1,15 @@
+﻿<Application x:Class="Minesweeper.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="WindowFolder/GameWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="SourceFolder/Dictionaries/DefaultDictionary.xaml" />
+                <ResourceDictionary Source="SourceFolder/Dictionaries/GameDictionary.xaml" />
+                <ResourceDictionary Source="SourceFolder/Dictionaries/AccountDictionary.xaml" />
+                <ResourceDictionary Source="SourceFolder/Dictionaries/StartMenuDictionary.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

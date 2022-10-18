@@ -1,0 +1,87 @@
+﻿<Window x:Class="Minesweeper.WindowFolder.AccountRegistration"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Minesweeper.WindowFolder"
+        mc:Ignorable="d"
+        Title="Registration" Height="Auto" Width="Auto"
+        Background="#bdbdbd"
+        BorderBrush="#7b7b7b"
+        BorderThickness="3"
+        WindowStartupLocation="CenterScreen"
+        SizeToContent="WidthAndHeight"
+        MouseDown="Window_MouseDown">
+    <Grid x:Name="grid" Focusable="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="10" />
+            <RowDefinition Height="40" />
+
+            <RowDefinition Height="10" />
+            <RowDefinition Height="40" />
+
+            <RowDefinition Height="10" />
+            <RowDefinition Height="40" />
+
+            <RowDefinition Height="10" />
+            <RowDefinition Height="40" />
+
+            <RowDefinition Height="10" />
+            <RowDefinition Height="40" />
+
+            <RowDefinition Height="10" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition />
+            <ColumnDefinition Width="10" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Row="1" Grid.Column="1">
+            <TextBox x:Name="NicknameTB"
+                 Style="{DynamicResource RegistrationTextBox}"
+                 GotFocus="TextBox_GotFocus"
+                 LostFocus="TextBox_LostFocus" />
+            <Label
+               Content="Ник"
+               IsHitTestVisible="False"
+               Style="{DynamicResource RegistrationLabelOnTextBox}" />
+        </Grid>
+
+        <Grid Grid.Row="3" Grid.Column="1">
+            <TextBox x:Name="MailTB"
+                     Style="{DynamicResource RegistrationTextBox}"
+                     GotFocus="TextBox_GotFocus"
+                     LostFocus="TextBox_LostFocus" />
+            <Label
+               Content="Почта"
+               IsHitTestVisible="False"
+               Style="{DynamicResource RegistrationLabelOnTextBox}" />
+        </Grid>
+
+        <Grid Grid.Row="5" Grid.Column="1">
+            <PasswordBox x:Name="PasswordPB"
+                 Style="{DynamicResource RegistrationTextBox}"
+                 GotFocus="TextBox_GotFocus"
+                 LostFocus="TextBox_LostFocus" />
+            <Label
+               Content="Пароль"
+               IsHitTestVisible="False"
+               Style="{DynamicResource RegistrationLabelOnTextBox}" />
+        </Grid>
+
+        <Grid Grid.Row="7" Grid.Column="1">
+            <PasswordBox x:Name="PasswordRepeatPB"
+                     Style="{DynamicResource RegistrationTextBox}"
+                     GotFocus="TextBox_GotFocus"
+                     LostFocus="TextBox_LostFocus" />
+            <Label
+               Content="Повторите пароль"
+               IsHitTestVisible="False"
+               Style="{DynamicResource RegistrationLabelOnTextBox}" />
+        </Grid>
+
+        <Button Content="Зарегистрироваться" Grid.Row="9" Grid.Column="1" Width="225" Style="{DynamicResource MenuButton}" FontSize="20"
+                Click="Registration_Click" />
+    </Grid>
+</Window>
