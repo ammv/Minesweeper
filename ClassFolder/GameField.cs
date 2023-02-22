@@ -210,22 +210,36 @@ namespace Minesweeper.ClassFolder
                 usedEmptyPoses.Add(emptyPoses[0]);
                 emptyPoses.RemoveAt(0);
 
-                if (y > 0)
-                    for (int i = -1; i < 2; i++)
-                        if (x + i >= 0 && x + i < Rows)
-                            if (!IsMine(x + i, y - 1))
-                                tempCellsValues.Add(new Point(x + i, y - 1));
-
-                if (y < Columns - 1)
-                    for (int i = -1; i < 2; i++)
-                        if (x + i >= 0 && x + i < Rows)
-                            if (!IsMine(x + i, y + 1))
-                                tempCellsValues.Add(new Point(x + i, y + 1));
-
+                // Собирает позиции вокруг ячейки, учитывая, что она может быть в углах
+                // if (y > 0)
+                int shiftX;
                 for (int i = -1; i < 2; i++)
-                    if (x + i >= 0 && x + i < Rows)
-                        if (!IsMine(x + i, y))
-                            tempCellsValues.Add(new Point(x + i, y));
+                    if ((shiftX = x + i) >= 0 && shiftX < Rows)
+                    {
+                        if (y > 0)
+                        {
+                            if (!IsMine(shiftX, y - 1))
+                                tempCellsValues.Add(new Point(shiftX, y - 1));
+                        }
+                        if (y < Columns - 1)
+                        {
+                            if (!IsMine(shiftX, y + 1))
+                                tempCellsValues.Add(new Point(shiftX, y + 1));
+                        }
+                        if (!IsMine(shiftX, y))
+                            tempCellsValues.Add(new Point(shiftX, y));
+                    }
+
+                //if (y < Columns - 1)
+                //    for (int i = -1; i < 2; i++)
+                //        if (x + i >= 0 && x + i < Rows)
+                //            if (!IsMine(x + i, y + 1))
+                //                tempCellsValues.Add(new Point(x + i, y + 1));
+
+                //for (int i = -1; i < 2; i++)
+                //    if (x + i >= 0 && x + i < Rows)
+                //        if (!IsMine(x + i, y))
+                //            tempCellsValues.Add(new Point(x + i, y));
 
                 for (int i = 0; i < tempCellsValues.Count; i++)
                 {
@@ -251,20 +265,25 @@ namespace Minesweeper.ClassFolder
         private int CountNearestMines(int x, int y)
         {
             int nearestMines = 0;
-            if (y > 0)
-                for (int i = -1; i < 2; i++)
-                    if (x + i >= 0 && x + i < Rows)
+
+            for (int i = -1; i < 2; i++)
+
+                if (x + i >= 0 && x + i < Rows)
+                {
+                    if (y > 0)
+                    {
                         if (Field[x + i, y - 1] == -1)
                             nearestMines++;
-            if (y < Columns - 1)
-                for (int i = -1; i < 2; i++)
-                    if (x + i >= 0 && x + i < Rows)
+                    }
+                    if (y < Columns - 1)
+                    {
                         if (Field[x + i, y + 1] == -1)
                             nearestMines++;
-            for (int i = -1; i < 2; i++)
-                if (x + i >= 0 && x + i < Rows)
+                    }
                     if (Field[x + i, y] == -1)
                         nearestMines++;
+                }
+
             return nearestMines;
         }
     }
