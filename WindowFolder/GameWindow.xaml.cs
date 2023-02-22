@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace Minesweeper.WindowFolder
 {
@@ -31,14 +32,14 @@ namespace Minesweeper.WindowFolder
         private readonly GameGridField gameGridField;
         private Mode[] gameModes;
         private int mode;
-        public string Text { get; set; } = "Hello";
         public static Account UserAccount { get; set; }
 
         public GameWindow()
         {
             InitializeComponent();
+            DataContext = this;
             LoadAccount();
-            SetBinding();
+            //SetBinding();
             SetMaxWindowSize();
             SetCommand();
             SetGameModes();
@@ -47,22 +48,23 @@ namespace Minesweeper.WindowFolder
 
         private void SetBinding()
         {
-            Binding binding = new Binding
-            {
-                Source = UserAccount, // элемент-источник
-                Path = new PropertyPath("Status"), // свойство элемента-источника
-                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
-                TargetNullValue = "Ошибка",
-                Converter = new AccountStatusConverter()
-            };
-            //BindingOperations.SetBinding(AccountStateLbl, TextBox.TextProperty, binding);
-            AccountStateLbl.SetBinding(Label.ContentProperty, binding);
+            //Binding binding = new Binding
+            //{
+            //    Source = UserAccount, // элемент-источник
+            //    Path = new PropertyPath("Status"), // свойство элемента-источника
+            //    UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
+            //    TargetNullValue = "Ошибка",
+            //    Converter = new ClassFolder.Converters.AccountStatusConverter()
+            //};
+            ////BindingOperations.SetBinding(AccountStateLbl, TextBox.TextProperty, binding);
+            //AccountStateLbl.SetBinding(Label.ContentProperty, binding);
         }
 
         private async void LoadAccount()
         {
             UserAccount = new Account();
             await AccountManager.LoadAccount(UserAccount);
+            AccountGameInfoManager.userAccount = UserAccount;
         }
 
         private void SetCommand()
@@ -70,10 +72,10 @@ namespace Minesweeper.WindowFolder
             _toStartMenuCommand = new RoutedCommand();
             _toStartMenuCommand.InputGestures.Add(new KeyGesture(Key.Escape));
             CommandBinding commandBind = new CommandBinding(_toStartMenuCommand, ToStartMenu);
-            CommandBinding commandBind2 = new CommandBinding(_toStartMenuCommand, ToStartMenuFromMenu);
+            // CommandBinding commandBind2 = new CommandBinding(_toStartMenuCommand, ToStartMenuFromMenu);
 
             Game.CommandBindings.Add(commandBind);
-            AccountMenu.CommandBindings.Add(commandBind2);
+            // AccountMenu.CommandBindings.Add(commandBind2);
         }
 
         private void SetMaxWindowSize()
@@ -134,12 +136,6 @@ namespace Minesweeper.WindowFolder
             }
         }
 
-        private void ToStartMenuFromMenu(object sender, ExecutedRoutedEventArgs e)
-        {
-            SHStartMenu();
-            SHAccountMenu();
-        }
-
         // SH - ShowHide
         private void SHStartMenu()
         {
@@ -162,13 +158,6 @@ namespace Minesweeper.WindowFolder
             Visibility visibleMode = Visibility.Visible == Game.Visibility ? Visibility.Hidden : Visibility.Visible;
             Game.Visibility = visibleMode;
             Game.IsEnabled = !Game.IsEnabled;
-        }
-
-        private void SHAccountMenu()
-        {
-            Visibility visibleMode = Visibility.Visible == AccountMenu.Visibility ? Visibility.Hidden : Visibility.Visible;
-            AccountMenu.Visibility = visibleMode;
-            AccountMenu.IsEnabled = !AccountMenu.IsEnabled;
         }
 
         private void Start_Click(object sender, RoutedEventArgs e)
@@ -229,8 +218,7 @@ namespace Minesweeper.WindowFolder
                         MessageBox.Show("Не удалось соеденение с базой данных", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                         break;
 
-                    case AccountErrorStatus.IncorrectDataFile:
-                        new AccountAuthorization().ShowDialog();
+                    case AccountErrorStatus.IncorrectSessionIDFile:
                         new AccountAuthorization().ShowDialog();
                         break;
 
@@ -239,8 +227,7 @@ namespace Minesweeper.WindowFolder
                         break;
 
                     case AccountErrorStatus.Ok:
-                        SHStartMenu();
-                        SHAccountMenu();
+                        new AccountViewWindow(this).ShowDialog();
                         //MessageBox.Show(Account.ToString());
                         break;
                 }
@@ -275,21 +262,9 @@ namespace Minesweeper.WindowFolder
             WidthLbl.Content = gameModes[3].Width.ToString();
         }
 
-        public class AccountStatusConverter : IValueConverter
+        public void UpdateOpenAccountImg(ImageSource src)
         {
-            public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-            {
-                if (UserAccount != null &&
-                    UserAccount.Error != AccountErrorStatus.Ok)
-                    return "Error: " + UserAccount.Error;
-                if (value != null) return ((AccountStatus)value).ToName();
-                return null;
-            }
-
-            public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            {
-                return DependencyProperty.UnsetValue;
-            }
+            MainAccountImage.ImageSource = src;
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

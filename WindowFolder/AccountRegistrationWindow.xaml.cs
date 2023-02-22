@@ -63,12 +63,12 @@ namespace Minesweeper.WindowFolder
 
         private async Task<bool> CheckNickname()
         {
-            return NicknameTB.Text.Length >= 4 && await DataBaseManager.ContainsData(NicknameTB.Text, 'N');
+            return NicknameTB.Text.Length >= 4 && await DataBaseManager.ContainsAccountData(NicknameTB.Text, 'N');
         }
 
         private async Task<bool> CheckMail()
         {
-            return await DataBaseManager.ContainsData(MailTB.Text, 'E');
+            return await DataBaseManager.ContainsAccountData(MailTB.Text, 'E');
         }
 
         private bool CheckPassword()

@@ -6,47 +6,32 @@ using System.Windows;
 namespace Minesweeper.ClassFolder
 {
     /// <summary>
-    ///     Contains user name and password from user.data file
-    /// </summary>
-    internal struct LoginData
-    {
-        public string Email;
-        public string Password;
-
-        public LoginData(string email, string password)
-        {
-            Email = email;
-            Password = password;
-        }
-    }
-
-    /// <summary>
     ///     Manages Accounts: getting, creating, changing
     /// </summary>
     internal class AccountManager
     {
-        private static readonly string DataFileName = "user.data";
+        private static readonly string SessionIDFile = ".session";
 
         public static async Task LoadAccount(Account account)
         {
             account.Status = AccountStatus.CheckingInternetConnection;
 
-            var hasInternet = await Task.Run(CheckInternetConnection);
+            var hasInternet = await Task.Run(Utils.CheckInternetConnection);
 
             if (hasInternet)
             {
-                account.Status = AccountStatus.OpeningDataFile;
+                account.Status = AccountStatus.OpeningSessionIDFile;
 
-                var loginData = await Task.Run(OpenDataFile);
+                string SessionID = await Task.Run(OpenSessionFile);
 
-                if (loginData != null)
+                if (SessionID != null)
                 {
                     account.Status = AccountStatus.Filling;
-                    await FillAccount(loginData, account, true);
+                    await FillAccount(SessionID, account);
                 }
                 else
                 {
-                    account.Error = AccountErrorStatus.IncorrectDataFile;
+                    account.Error = AccountErrorStatus.IncorrectSessionIDFile;
                 }
             }
             else
@@ -55,89 +40,50 @@ namespace Minesweeper.ClassFolder
             }
         }
 
-        public static void CreateDataFile(string email, string password)
+        public static async Task CreateSessionFile(string sessionID)
         {
-            using (var sw = new StreamWriter(DataFileName, false))
+            using (var sw = new StreamWriter(SessionIDFile, false))
             {
-                sw.WriteLine(email);
-                sw.Write(password);
+                await sw.WriteAsync(sessionID);
             }
         }
 
-        private static LoginData? OpenDataFile()
+        public static string OpenSessionFile()
         {
-            LoginData? loginData = null;
-            if (File.Exists(DataFileName))
+            string SessionID = null;
+            if (File.Exists(SessionIDFile))
             {
                 var isCorrectFileContent = true;
-                using (var sr = new StreamReader(DataFileName))
-                {
-                    var lines = sr.ReadToEnd().Split('\n');
-                    if (lines.Length == 2)
-                        loginData = new LoginData(lines[0], lines[1]);
-                    else
-                        isCorrectFileContent = false;
-                }
+                using (var sr = new StreamReader(SessionIDFile))
+                    SessionID = sr.ReadToEnd();
 
                 if (!isCorrectFileContent)
-                    // Clear file
-                    new StreamWriter(DataFileName, false).Close();
+                    File.Delete(SessionIDFile);
             }
 
-            return loginData;
+            return SessionID;
         }
 
-        private static async Task FillAccount(LoginData? loginData, Account account, bool isEncrypted = false)
+        private static async Task FillAccount(string SessionID, Account account)
         {
-            if (loginData != null)
+            if (SessionID != null)
             {
                 account.Status = AccountStatus.DatabaseQuery;
 
-                var result = await DataBaseManager.ContainsAccount(loginData.Value.Email, loginData.Value.Password, isEncrypted);
-                if (result == true)
+                var data = await DataBaseManager.GetAccountDataBySessionID(SessionID);
+
+                if (data != null)
                 {
-                    account.Status = AccountStatus.LoadsData;
-                    var data = await DataBaseManager.GetAccountData(loginData.Value.Email);
-
-                    if (data != null)
-                    {
-                        account.ID = (int)data[0];
-                        account.Nickname = (string)data[1];
-                        account.Email = (string)data[2];
-                        account.Password = (string)data[3];
-                        account.Status = AccountStatus.Complete;
-                        account.Error = AccountErrorStatus.Ok;
-
-                        await DataBaseManager.UpdateLastLogin(account.Nickname);
-                    }
-                    else
-                    {
-                        account.Error = AccountErrorStatus.NotExists;
-                    }
+                    account.FromObject(data);
+                    account.Error = AccountErrorStatus.Ok;
+                    account.Status = AccountStatus.Complete;
+                    return;
                 }
                 else
-                {
                     account.Error = AccountErrorStatus.NotExists;
-                }
             }
             else
-            {
-                account.Error = AccountErrorStatus.NotExists;
-            }
-        }
-
-        private static bool CheckInternetConnection()
-        {
-            try
-            {
-                var pingSender = new Ping();
-                var reply = pingSender.Send("www.google.com.mx");
-                return reply != null && reply.Status == IPStatus.Success;
-            }
-            catch
-            {
-                return false;
-            }
+                account.Error = AccountErrorStatus.IncorrectSessionIDFile;
         }
     }
 }

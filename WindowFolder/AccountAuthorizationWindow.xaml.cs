@@ -17,11 +17,15 @@ namespace Minesweeper.WindowFolder
 
         private async void Authorization_Click(object sender, RoutedEventArgs e)
         {
-            bool? result = await DataBaseManager.ContainsAccount(EmailTB.Text, PasswordPB.Password);
-            if (result != null)
+            int result = await DataBaseManager.ContainsAccount(EmailTB.Text.Trim(), PasswordPB.Password.Trim());
+            if (result != -1)
             {
+                object[] data = await DataBaseManager.GetAccountData(EmailTB.Text, PasswordPB.Password);
+                GameWindow.UserAccount.FromObject(data);
+                GameWindow.UserAccount.Error = AccountErrorStatus.Ok;
+                GameWindow.UserAccount.Status = AccountStatus.Complete;
                 MessageBox.Show("Авторизация прошла успешно");
-                AccountManager.CreateDataFile(EmailTB.Text, PasswordPB.Password);
+                await AccountManager.CreateSessionFile(GameWindow.UserAccount.SessionID);
                 Close();
             }
             else
@@ -58,11 +62,16 @@ namespace Minesweeper.WindowFolder
 
         private void TextBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            var visibleMode = Visibility.Visible;
+            Visibility visibleMode = Visibility.Visible;
+
             int gridIndex = GetGridIndex((int)((Control)sender).Parent.GetValue(Grid.RowProperty));
+
             if (gridIndex == -1) return;
+
             Label lbl = (Label)((Grid)grid.Children[gridIndex]).Children[1];
+
             lbl.Visibility = Visibility.Hidden;
+
             if (sender is TextBox tb)
             {
                 if (tb.Text.Length != 0)

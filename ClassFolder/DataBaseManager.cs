@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -21,6 +22,11 @@ namespace Minesweeper.ClassFolder
             this.type = type;
             this.size = size;
         }
+
+        public override string ToString()
+        {
+            return $"name: {name}\nvalue: {value}\ntype: {type}\nsize: {size}";
+        }
     }
 
     internal class DataBaseManager
@@ -28,9 +34,11 @@ namespace Minesweeper.ClassFolder
         private static readonly string connString = @"
             Data Source=DESKTOP-0AEC5RH\SQLEXPRESS;
             Initial Catalog=Minesweeper;
-            Integrated Security=True";
+            Integrated Security=True;
+            User ID=artem;password=19731982dd;
+            ";
 
-        private static readonly SqlConnection conn = new SqlConnection(connString);
+        //private static readonly SqlConnection conn = new SqlConnection(connString);
 
         /// <summary>
         /// Adding parameters to SqlCommand.Parameters
@@ -41,6 +49,7 @@ namespace Minesweeper.ClassFolder
         {
             foreach (var parameter in parameters)
             {
+                //MessageBox.Show(parameter.ToString());
                 SqlParameter sqlParameter = new SqlParameter
                 {
                     ParameterName = parameter.name,
@@ -50,128 +59,188 @@ namespace Minesweeper.ClassFolder
                 sqlParameter.Value = parameter.value;
                 cmd.Parameters.Add(sqlParameter);
             }
+            //SqlParameter x = new SqlParameter("@add", SqlDbType.BigInt, 4, 35);
         }
 
-        public static async Task<bool> ContainsData(string data, char dataType)
+        public static async Task<bool> ContainsAccountData(string data, char dataType)
         {
             bool hasRows = false;
             try
             {
-                await conn.OpenAsync();
-
-                SqlCommand containsData = new SqlCommand()
+                using (SqlConnection conn = new SqlConnection(connString))
                 {
-                    Connection = conn,
-                    CommandType = CommandType.StoredProcedure,
-                    CommandText = $"ContainsData"
-                };
-                AddParameters(containsData,
+                    await conn.OpenAsync();
 
-                    new Parameter("data", data, SqlDbType.NVarChar, data.Length),
-                    new Parameter("dataType", dataType, SqlDbType.Char, 1));
+                    SqlCommand containsAccountData = new SqlCommand()
+                    {
+                        Connection = conn,
+                        CommandType = CommandType.StoredProcedure,
+                        CommandText = $"ContainsAccountData"
+                    };
 
-                object result = await containsData.ExecuteScalarAsync();
-                hasRows = result != null;
+                    containsAccountData.Parameters.Add("@data", SqlDbType.NVarChar, 1).Value = data;
+                    containsAccountData.Parameters.Add("@dataType", SqlDbType.Char, 1).Value = dataType;
+
+                    object result = await containsAccountData.ExecuteScalarAsync();
+                    hasRows = result != null;
+                }
             }
             catch (Exception err)
             {
-                MessageBox.Show(err.Message, "ContainsData. Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            finally
-            {
-                conn.Close();
+                WindowFolder.GameWindow.UserAccount.Error = AccountErrorStatus.DataBaseConnectionFailed;
+                MessageBox.Show(err.Message, "ContainsAccountData. Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             return hasRows;
         }
 
-        public static async Task<string> GetAccountEncryptedData(string nickname)
-        {
-            string encryptedData = null;
-            try
-            {
-                await conn.OpenAsync();
-
-                SqlCommand getEncryptedDataAccount = new SqlCommand()
-                {
-                    Connection = conn,
-                    CommandText = "GetAccountEncryptedData",
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                AddParameters(getEncryptedDataAccount,
-                    new Parameter("nickname", nickname, SqlDbType.NVarChar, 20)
-                );
-
-                SqlDataReader reader = await getEncryptedDataAccount.ExecuteReaderAsync();
-
-                object[] data = new object[2];
-
-                if (reader.HasRows)
-                {
-                    while (reader.Read())
-                    {
-                        data[0] = reader.GetSqlBinary(0);
-                        data[1] = reader.GetSqlBinary(1);
-                    }
-                }
-
-                encryptedData = data[0].ToString() + '\n' + data[1].ToString();
-
-                reader.Close();
-            }
-            catch (Exception err)
-            {
-                MessageBox.Show(err.Message, "GetAccountEncryptedData. Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            finally
-            {
-                conn.Close();
-            }
-            return encryptedData;
-        }
-
-        public static async Task<object[]> GetAccountData(string email)
+        public static async Task<object[]> GetAccountData(string email, string password)
         {
             object[] data = null;
             try
             {
-                await conn.OpenAsync();
-
-                SqlCommand getAccountData = new SqlCommand()
+                using (SqlConnection conn = new SqlConnection(connString))
                 {
-                    Connection = conn,
-                    CommandText = "GetAccountData",
-                    CommandType = CommandType.StoredProcedure
-                };
+                    await conn.OpenAsync();
 
-                AddParameters(getAccountData,
-                    new Parameter("email", email.Trim(), SqlDbType.NVarChar, 100)
-                );
-
-                SqlDataReader reader = await getAccountData.ExecuteReaderAsync();
-
-                data = new object[4];
-
-                if (reader.HasRows)
-                {
-                    while (reader.Read())
+                    SqlCommand getAccountData = new SqlCommand()
                     {
-                        data[0] = reader.GetInt32(0);
-                        data[1] = reader.GetString(1);
-                        data[2] = reader.GetSqlBinary(2);
-                        data[3] = reader.GetSqlBinary(3);
-                    }
-                }
+                        Connection = conn,
+                        CommandText = "GetAccountData",
+                        CommandType = CommandType.StoredProcedure
+                    };
 
-                reader.Close();
+                    AddParameters(getAccountData,
+                        new Parameter("email", email, SqlDbType.NVarChar, 100),
+                        new Parameter("password", password, SqlDbType.NVarChar, 30),
+                        new Parameter("createSession", 1, SqlDbType.Bit, 1),
+                        new Parameter("ID", -1, SqlDbType.Int, 4)
+                    );
+
+                    SqlDataReader reader = await getAccountData.ExecuteReaderAsync();
+
+                    if (reader.HasRows)
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            data = new object[4];
+
+                            data[0] = reader.GetInt32(0);
+                            data[1] = reader.GetString(1);
+                            data[2] = ByteImageConverter.ImageSourceFromBytes(reader.GetSqlBytes(2));
+                            data[3] = BitConverter.ToString(reader.GetSqlBytes(3).Value);
+                        }
+                    }
+
+                    if (reader != null) reader.Close();
+                }
             }
             catch (Exception err)
             {
+                WindowFolder.GameWindow.UserAccount.Error = AccountErrorStatus.DataBaseConnectionFailed;
                 MessageBox.Show(err.Message, "GetAccountData. Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            finally
+            return data;
+        }
+
+        public static async Task<object[]> GetAccountDataBySessionID(string sessionID)
+        {
+            object[] data = null;
+            try
             {
-                conn.Close();
+                using (SqlConnection conn = new SqlConnection(connString))
+                {
+                    await conn.OpenAsync();
+
+                    SqlCommand getAccountDataBySessionID = new SqlCommand()
+                    {
+                        Connection = conn,
+                        CommandText = "GetAccountDataBySessionID",
+                        CommandType = CommandType.StoredProcedure
+                    };
+
+                    AddParameters(getAccountDataBySessionID,
+                        new Parameter("SessionID", Utils.StringToByteArray(sessionID), SqlDbType.VarBinary, sessionID.Length)
+                    );
+
+                    SqlDataReader reader = await getAccountDataBySessionID.ExecuteReaderAsync();
+
+                    if (reader.HasRows)
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            if (reader.FieldCount == 1)
+                                WindowFolder.GameWindow.UserAccount.Error = AccountErrorStatus.SessionExpired;
+                            else
+                            {
+                                data = new object[4];
+
+                                data[0] = reader.GetInt32(0);
+                                data[1] = reader.GetString(1);
+                                data[2] = ByteImageConverter.ImageSourceFromBytes(reader.GetSqlBytes(2));
+                                data[3] = sessionID;
+                            }
+                        }
+                    }
+
+                    if (reader != null) reader.Close();
+                }
+            }
+            catch (Exception err)
+            {
+                WindowFolder.GameWindow.UserAccount.Error = AccountErrorStatus.DataBaseConnectionFailed;
+                MessageBox.Show(err.Message, "getAccountDataBySessionID. Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            return data;
+        }
+
+        public static async Task<object[]> GetAccountStatistics(string sessionID)
+        {
+            object[] data = null;
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connString))
+                {
+                    await conn.OpenAsync();
+
+                    SqlCommand getAccountStatistics = new SqlCommand()
+                    {
+                        Connection = conn,
+                        CommandText = "GetAccountStatistics",
+                        CommandType = CommandType.StoredProcedure
+                    };
+
+                    AddParameters(getAccountStatistics,
+                        new Parameter("SessionID", Utils.StringToByteArray(sessionID), SqlDbType.VarBinary, sessionID.Length)
+                    );
+
+                    SqlDataReader reader = await getAccountStatistics.ExecuteReaderAsync();
+
+                    if (reader.HasRows)
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            if (reader.FieldCount == 1)
+                                WindowFolder.GameWindow.UserAccount.Error = AccountErrorStatus.SessionExpired;
+                            else
+                            {
+                                data = new object[6];
+
+                                data[0] = reader.GetInt32(1);
+                                data[1] = reader.GetInt32(2);
+                                data[2] = reader.GetInt32(3);
+                                data[3] = reader.GetInt32(4);
+                                data[4] = reader.GetInt32(5);
+                                data[5] = reader.GetInt32(6);
+                            }
+                        }
+                    }
+                    if (reader != null) reader.Close();
+                }
+            }
+            catch (Exception err)
+            {
+                WindowFolder.GameWindow.UserAccount.Error = AccountErrorStatus.DataBaseConnectionFailed;
+                MessageBox.Show(err.Message, "GetAccountStatistic. Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             return data;
         }
@@ -183,42 +252,37 @@ namespace Minesweeper.ClassFolder
         /// <param name="password">Password of player</param>
         /// <param name="isEncrypted">If Email and Password encrypted</param>
         /// <returns></returns>
-        public static async Task<bool?> ContainsAccount(string email, string password, bool isEncrypted = false)
+        public static async Task<int> ContainsAccount(string email, string password)
         {
-            bool? read = false;
+            int ID = -1;
             try
             {
-                await conn.OpenAsync();
-
-                SqlCommand containsAccount = new SqlCommand
+                using (SqlConnection conn = new SqlConnection(connString))
                 {
-                    Connection = conn,
-                    CommandType = CommandType.StoredProcedure
-                };
+                    await conn.OpenAsync();
 
-                if (isEncrypted)
-                    containsAccount.CommandText = "ContainsAccountEncrypted";
-                else
+                    SqlCommand containsAccount = new SqlCommand
+                    {
+                        Connection = conn,
+                        CommandType = CommandType.StoredProcedure
+                    };
                     containsAccount.CommandText = "ContainsAccount";
+                    AddParameters(containsAccount,
+                        new Parameter("email", email.Trim(), SqlDbType.NVarChar, 100),
+                        new Parameter("password", password.Trim(), SqlDbType.NVarChar, 30));
 
-                AddParameters(containsAccount,
-                    new Parameter("email", email.Trim(), SqlDbType.NVarChar, 100),
-                    new Parameter("password", password.Trim(), SqlDbType.NVarChar, 30));
-
-                object result = await containsAccount.ExecuteScalarAsync();
-                if (result != null)
-                    read = true;
+                    object result = await containsAccount.ExecuteScalarAsync();
+                    //MessageBox.Show("ContainsAccount result is null: " + (result == null).ToString());
+                    if (result != null)
+                        ID = (int)result;
+                }
             }
             catch (Exception err)
             {
+                WindowFolder.GameWindow.UserAccount.Error = AccountErrorStatus.DataBaseConnectionFailed;
                 MessageBox.Show(err.Message, "ContainsAccount. Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                return null;
             }
-            finally
-            {
-                conn.Close();
-            }
-            return read;
+            return ID;
         }
 
         /// <summary>
@@ -230,62 +294,178 @@ namespace Minesweeper.ClassFolder
         /// <returns></returns>
         public static async Task<int> AddAccount(string nickname, string email, string password)
         {
+            int x = 0;
             try
             {
-                await conn.OpenAsync();
-                SqlCommand addAccount = new SqlCommand()
+                using (SqlConnection conn = new SqlConnection(connString))
                 {
-                    CommandText = "AddAccount",
-                    CommandType = CommandType.StoredProcedure,
-                    Connection = conn
-                };
-                AddParameters(addAccount,
-                    new Parameter("nickname", nickname, SqlDbType.NVarChar, 20),
-                    new Parameter("email", email, SqlDbType.NVarChar, 100),
-                    new Parameter("password", password, SqlDbType.NVarChar, 30)
-                );
-                int x = await addAccount.ExecuteNonQueryAsync();
-                conn.Close();
-                return x;
+                    await conn.OpenAsync();
+                    SqlCommand addAccount = new SqlCommand()
+                    {
+                        CommandText = "AddAccount",
+                        CommandType = CommandType.StoredProcedure,
+                        Connection = conn
+                    };
+                    AddParameters(addAccount,
+                        new Parameter("nickname", nickname, SqlDbType.NVarChar, 20),
+                        new Parameter("email", email, SqlDbType.NVarChar, 100),
+                        new Parameter("password", password, SqlDbType.NVarChar, 30)
+                    );
+                    x = await addAccount.ExecuteNonQueryAsync();
+                }
             }
             catch (Exception err)
             {
+                WindowFolder.GameWindow.UserAccount.Error = AccountErrorStatus.DataBaseConnectionFailed;
                 MessageBox.Show(err.Message, "AddAccount. Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            finally
-            {
-                conn.Close();
-            }
-            return 0;
+            return x;
         }
 
-        public static async Task<int> UpdateLastLogin(string nickname)
+        public static async Task<int> UpdateAccountAvatar(string sessionID, byte[] avatar)
         {
+            int x = 0;
             try
             {
-                await conn.OpenAsync();
-                SqlCommand updateLastLogin = new SqlCommand()
+                using (SqlConnection conn = new SqlConnection(connString))
                 {
-                    CommandText = "UpdateLastLogin",
-                    CommandType = CommandType.StoredProcedure,
-                    Connection = conn
-                };
-                AddParameters(updateLastLogin,
-                    new Parameter("nickname", nickname, SqlDbType.NVarChar, 20)
-                );
-                int x = await updateLastLogin.ExecuteNonQueryAsync();
-                conn.Close();
-                return x;
+                    await conn.OpenAsync();
+                    SqlCommand updateAccountAvatar = new SqlCommand()
+                    {
+                        CommandText = "UpdateAccountAvatar",
+                        CommandType = CommandType.StoredProcedure,
+                        Connection = conn
+                    };
+                    AddParameters(updateAccountAvatar,
+                        new Parameter("SessionID", Utils.StringToByteArray(sessionID), SqlDbType.VarBinary, sessionID.Length),
+                        new Parameter("avatar", avatar, SqlDbType.VarBinary, avatar.Length)
+                    );
+                    x = await updateAccountAvatar.ExecuteNonQueryAsync();
+                }
             }
             catch (Exception err)
             {
-                MessageBox.Show(err.Message, "UpdateLastLogin. Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                WindowFolder.GameWindow.UserAccount.Error = AccountErrorStatus.DataBaseConnectionFailed;
+                MessageBox.Show(err.Message, "UpdateAccountAvatar. Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            finally
+            return x;
+        }
+
+        public static async Task<bool> UpdateAccountStatistics(string columnName, int newValue, string sessionID)
+        {
+            bool isSuccess = false;
+            try
             {
-                conn.Close();
+                using (SqlConnection conn = new SqlConnection(connString))
+                {
+                    await conn.OpenAsync();
+
+                    SqlCommand updateAccountStatistics = new SqlCommand()
+                    {
+                        CommandText = "UpdateAccountStatistics",
+                        CommandType = CommandType.StoredProcedure,
+                        Connection = conn
+                    };
+                    AddParameters(updateAccountStatistics,
+                        new Parameter("columnName", columnName, SqlDbType.NVarChar, columnName.Length),
+                        new Parameter("newValue", newValue, SqlDbType.Int, 4),
+                        new Parameter("SessionID", Utils.StringToByteArray(sessionID), SqlDbType.VarBinary, sessionID.Length)
+                    );
+                    int result = await updateAccountStatistics.ExecuteNonQueryAsync();
+                    isSuccess = result != 0;
+                }
             }
-            return 0;
+            catch (Exception err)
+            {
+                WindowFolder.GameWindow.UserAccount.Error = AccountErrorStatus.DataBaseConnectionFailed;
+                MessageBox.Show(err.Message, "UpdateAccountStatistics. Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            return isSuccess;
+        }
+
+        public static async Task<object[]> GetAccountRank(string sessionID)
+        {
+            object[] data = null;
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connString))
+                {
+                    await conn.OpenAsync();
+                    SqlCommand getAccountRank = new SqlCommand()
+                    {
+                        CommandText = "GetAccountRank",
+                        CommandType = CommandType.StoredProcedure,
+                        Connection = conn
+                    };
+                    AddParameters(getAccountRank,
+                        new Parameter("sessionID", Utils.StringToByteArray(sessionID), SqlDbType.VarBinary, sessionID.Length)
+                    );
+                    SqlDataReader reader = await getAccountRank.ExecuteReaderAsync();
+                    if (reader.HasRows)
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            data = new object[4];
+
+                            data[0] = reader.GetInt32(0);
+                            data[1] = reader.GetString(1);
+                            data[2] = reader.GetInt32(2);
+                            data[3] = reader.GetInt32(3);
+                        }
+                    }
+
+                    if (reader != null) reader.Close();
+                }
+            }
+            catch (Exception err)
+            {
+                WindowFolder.GameWindow.UserAccount.Error = AccountErrorStatus.DataBaseConnectionFailed;
+                MessageBox.Show(err.Message, "GetAccountRank. Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            return data;
+        }
+
+        public static async Task<object[]> UpdateAccountRank(int newExperience, string sessionID)
+        {
+            object[] data = null;
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connString))
+                {
+                    await conn.OpenAsync();
+                    SqlCommand updateAccountRank = new SqlCommand()
+                    {
+                        CommandText = "UpdateAccountRank",
+                        CommandType = CommandType.StoredProcedure,
+                        Connection = conn
+                    };
+                    AddParameters(updateAccountRank,
+                        new Parameter("newExperience", newExperience, SqlDbType.Int, 4),
+                        new Parameter("sessionID", Utils.StringToByteArray(sessionID), SqlDbType.VarBinary, sessionID.Length)
+                    );
+                    SqlDataReader reader = await updateAccountRank.ExecuteReaderAsync();
+                    if (reader.HasRows)
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            data = new object[4];
+
+                            data[0] = reader.GetInt32(0);
+                            data[1] = reader.GetString(1);
+                            data[2] = reader.GetInt32(2);
+                            data[3] = reader.GetInt32(3);
+                        }
+                    }
+
+                    if (reader != null) reader.Close();
+                }
+            }
+            catch (Exception err)
+            {
+                WindowFolder.GameWindow.UserAccount.Error = AccountErrorStatus.DataBaseConnectionFailed;
+                MessageBox.Show(err.Message, "UpdateAccountRank. Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            return data;
         }
     }
 }

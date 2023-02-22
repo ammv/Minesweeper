@@ -1,0 +1,75 @@
+﻿<Window x:Class="Minesweeper.WindowFolder.WinNotifyWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Minesweeper"
+        xmlns:classfolder="clr-namespace:Minesweeper.ClassFolder" d:DataContext="{d:DesignInstance Type=classfolder:GameInfo}"
+        mc:Ignorable="d"
+        Background="#01000000"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        BorderThickness="3"
+        BorderBrush="Gray"
+        MouseUp="Window_MouseUp"
+        WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded"
+        Width="300" Height="200">
+    <Grid x:Name="InfoGrid">
+        <Grid.Resources>
+            <Style x:Key="WinLoss" BasedOn="{StaticResource Text}"
+                   TargetType="{x:Type Label}">
+                <Setter Property="FontSize" Value="36" />
+                <Setter Property="Foreground" Value="#2A6A92" />
+            </Style>
+            <Style x:Key="GameInfo" BasedOn="{StaticResource Text}"
+                   TargetType="{x:Type Label}">
+                <Setter Property="FontSize" Value="20" />
+                <Setter Property="Foreground" Value="#2A6A92" />
+            </Style>
+            <Style x:Key="RankProgress" BasedOn="{StaticResource Text}"
+                   TargetType="{x:Type Label}">
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="Foreground" Value="#2A6A92" />
+                <Setter Property="FontWeight" Value="Regular" />
+            </Style>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Label Grid.Row="0" Grid.ColumnSpan="2"
+               Content="{Binding IsWinString}" HorizontalAlignment="Center"
+               Style="{StaticResource WinLoss}" />
+
+        <Label Grid.Row="1" Grid.Column="0"
+               VerticalAlignment="Center" Content="Experience"
+               Style="{StaticResource GameInfo}"
+               HorizontalAlignment="Left" />
+        <Label Grid.Row="1" Grid.Column="1"
+               VerticalAlignment="Center" Content="{Binding Experience}"
+               ContentStringFormat="+{0}"
+               Style="{StaticResource GameInfo}"
+               HorizontalAlignment="Right" />
+
+        <Label Grid.Row="2" Grid.Column="0"
+               VerticalAlignment="Center" Content="Time"
+               Style="{StaticResource GameInfo}"
+               HorizontalAlignment="Left" />
+        <Label Grid.Row="2" Grid.Column="1"
+               VerticalAlignment="Center"
+               Content="{Binding TimeString}"
+                Style="{StaticResource GameInfo}"
+               HorizontalAlignment="Right" />
+
+        <Label x:Name="RankProgressLbl" Grid.Row="3" Grid.ColumnSpan="2"
+               Style="{StaticResource RankProgress}"
+               HorizontalAlignment="Center" />
+    </Grid>
+</Window>

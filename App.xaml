@@ -9,6 +9,7 @@
                 <ResourceDictionary Source="SourceFolder/Dictionaries/GameDictionary.xaml" />
                 <ResourceDictionary Source="SourceFolder/Dictionaries/AccountDictionary.xaml" />
                 <ResourceDictionary Source="SourceFolder/Dictionaries/StartMenuDictionary.xaml" />
+                <ResourceDictionary Source="SourceFolder/Themes/General.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

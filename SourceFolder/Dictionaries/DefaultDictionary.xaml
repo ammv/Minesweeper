@@ -7,4 +7,10 @@
         <Setter Property="Foreground" Value="#324150" />
         <Setter Property="FontWeight" Value="Bold" />
     </Style>
+    <Style x:Key="WindowStyle" TargetType="Window">
+        <Setter Property="Background" Value="#bdbdbd" />
+        <Setter Property="BorderBrush" Value="#7b7b7b" />
+        <Setter Property="BorderThickness" Value="3" />
+        <Setter Property="SizeToContent" Value="WidthAndHeight" />
+    </Style>
 </ResourceDictionary>

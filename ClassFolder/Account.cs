@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Media;
 
 namespace Minesweeper.ClassFolder
 {
@@ -24,7 +25,7 @@ namespace Minesweeper.ClassFolder
         /// Open file with user data to login
         /// </summary>
         [Description("Opens user.data file")]
-        OpeningDataFile,
+        OpeningSessionIDFile,
 
         /// <summary>
         /// Filling out the Account
@@ -59,7 +60,7 @@ namespace Minesweeper.ClassFolder
         /// <summary>
         /// Data file exists and have inccorect content or data file not exists
         /// </summary>
-        IncorrectDataFile,
+        IncorrectSessionIDFile,
 
         /// <summary>
         /// Data file exist but Account not exists in database
@@ -79,7 +80,12 @@ namespace Minesweeper.ClassFolder
         /// <summary>
         /// Connection to the database failed
         /// </summary>
-        DataBaseConnectionFailed
+        DataBaseConnectionFailed,
+
+        /// <summary>
+        /// 7 days have passed since the session was created
+        /// </summary>
+        SessionExpired
     }
 
     public static class EnumExtensions
@@ -113,6 +119,172 @@ namespace Minesweeper.ClassFolder
         }
     }
 
+    public class AccountRank : INotifyPropertyChanged
+    {
+        private int id;
+        private string name;
+        private int experience;
+        private int experienceToNewRank;
+
+        public int ID
+        {
+            get => id;
+            set
+            {
+                id = value;
+                OnPropertyChanged("ID");
+            }
+        }
+
+        public string Name
+        {
+            get => name;
+            set
+            {
+                name = value;
+                OnPropertyChanged("Name");
+            }
+        }
+
+        public int Experience
+        {
+            get => experience;
+            set
+            {
+                experience = value;
+                OnPropertyChanged("CurrentExperience");
+                //OnPropertyChanged("ExperienceString");
+            }
+        }
+
+        public int ExperienceToNewRank
+        {
+            get => experienceToNewRank;
+            set
+            {
+                experienceToNewRank = value;
+                OnPropertyChanged("ExperienceToNewRank");
+                //OnPropertyChanged("ExperienceString");
+            }
+        }
+
+        public string ExperienceString
+        {
+            get => $"{experience}/{experienceToNewRank}";
+        }
+
+        public void FromObject(object[] data)
+        {
+            if (data != null)
+            {
+                id = (int)data[0];
+                name = (string)data[1];
+                experience = (int)data[2];
+                ExperienceToNewRank = (int)data[3];
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void OnPropertyChanged([CallerMemberName] string prop = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
+        }
+    }
+
+    /// <summary>
+    /// Contains statistic information
+    /// </summary>
+    public class AccountStatistic : INotifyPropertyChanged
+    {
+        private int games;
+        private int wins;
+        private int loss;
+        private int timeInGame;
+        private int longestGame;
+        private int fastestGame;
+
+        public int Games
+        {
+            get => games;
+            set
+            {
+                games = value;
+                OnPropertyChanged("Games");
+            }
+        }
+
+        public int Wins
+        {
+            get => wins;
+            set
+            {
+                wins = value;
+                OnPropertyChanged("Wins");
+            }
+        }
+
+        public int Loss
+        {
+            get => loss;
+            set
+            {
+                loss = value;
+                OnPropertyChanged("Loss");
+            }
+        }
+
+        public int TimeInGame
+        {
+            get => timeInGame;
+            set
+            {
+                timeInGame = value;
+                OnPropertyChanged("TimeInGame");
+            }
+        }
+
+        public int LongestGame
+        {
+            get => longestGame;
+            set
+            {
+                longestGame = value;
+                OnPropertyChanged("LongestGame");
+            }
+        }
+
+        public int FastestGame
+        {
+            get => fastestGame;
+            set
+            {
+                fastestGame = value;
+                OnPropertyChanged("FastestGame");
+            }
+        }
+
+        public void FromObject(object[] data)
+        {
+            if (data != null)
+            {
+                games = (int)data[0];
+                wins = (int)data[1];
+                loss = (int)data[2];
+                timeInGame = (int)data[3];
+                longestGame = (int)data[4];
+                fastestGame = (int)data[5];
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void OnPropertyChanged([CallerMemberName] string prop = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
+        }
+    }
+
     /// <summary>
     /// Contains information about user
     /// </summary>
@@ -120,10 +292,13 @@ namespace Minesweeper.ClassFolder
     {
         private AccountStatus status;
         private AccountErrorStatus error;
+
         private int id;
         private string nickname;
-        private string email;
-        private string password;
+        private ImageSource avatar;
+        private AccountStatistic statistic;
+        private AccountRank rank;
+        private string sessionID;
 
         public AccountErrorStatus Error
         {
@@ -143,11 +318,6 @@ namespace Minesweeper.ClassFolder
                 status = value;
                 OnPropertyChanged("Status");
             }
-        }
-
-        public string StatusString
-        {
-            get => status.ToString();
         }
 
         public int ID
@@ -170,23 +340,38 @@ namespace Minesweeper.ClassFolder
             }
         }
 
-        public string Email
+        public ImageSource Avatar
         {
-            get => email;
+            get => avatar;
             set
             {
-                email = value;
-                OnPropertyChanged("Email");
+                avatar = value;
+                OnPropertyChanged("Avatar");
             }
         }
 
-        public string Password
+        public string SessionID
         {
-            get => password;
+            get => sessionID;
+        }
+
+        public AccountStatistic Statistic
+        {
+            get => statistic;
             set
             {
-                password = value;
-                OnPropertyChanged("Password");
+                statistic = value;
+                OnPropertyChanged("Statistic");
+            }
+        }
+
+        public AccountRank Rank
+        {
+            get => rank;
+            set
+            {
+                rank = value;
+                OnPropertyChanged("Rank");
             }
         }
 
@@ -195,14 +380,21 @@ namespace Minesweeper.ClassFolder
             Status = AccountStatus.Initialized;
         }
 
-        public override string ToString()
+        public async void FromObject(object[] data)
         {
-            return string.Format(
-                "ID: {0}\n" +
-                "Nickname: {1}\n" +
-                "Mail: {2}\n" +
-                "Password: {3}",
-                ID, Nickname, Email, Password);
+            if (data != null)
+            {
+                ID = (int)data[0];
+                Nickname = (string)data[1];
+                Avatar = (ImageSource)data[2];
+                sessionID = (string)data[3];
+
+                statistic = new AccountStatistic();
+                rank = new AccountRank();
+
+                statistic.FromObject(await DataBaseManager.GetAccountStatistics(sessionID));
+                rank.FromObject(await DataBaseManager.GetAccountRank(sessionID));
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

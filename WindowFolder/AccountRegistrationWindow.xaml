@@ -6,12 +6,9 @@
         xmlns:local="clr-namespace:Minesweeper.WindowFolder"
         mc:Ignorable="d"
         Title="Registration" Height="Auto" Width="Auto"
-        Background="#bdbdbd"
-        BorderBrush="#7b7b7b"
-        BorderThickness="3"
         WindowStartupLocation="CenterScreen"
-        SizeToContent="WidthAndHeight"
-        MouseDown="Window_MouseDown">
+        MouseDown="Window_MouseDown"
+        Style="{DynamicResource WindowStyle}">
     <Grid x:Name="grid" Focusable="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="10" />

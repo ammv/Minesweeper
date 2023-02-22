@@ -18,7 +18,7 @@ namespace Minesweeper.ClassFolder
         private readonly Button restartBtn;
         private DispatcherTimer timer;
         private bool firstClick;
-        private long secondsTimer;
+        private int secondsTimer;
 
         public bool Initialized;
         public int Rows;
@@ -26,6 +26,7 @@ namespace Minesweeper.ClassFolder
         public int CurrentMines;
         public int OpenCells;
         public int DefaultMines;
+        public bool IsFlagStyle;
 
         // Ицициализация
         public GameGridField(Grid grid, Label minesLbl, Label timeLbl, Button restartBtn)
@@ -46,8 +47,11 @@ namespace Minesweeper.ClassFolder
 
         public void Reset()
         {
+            timer.Stop();
             firstClick = false;
             OpenCells = 0;
+            secondsTimer = 0;
+            IsFlagStyle = true;
             CurrentMines = DefaultMines != 0 ? DefaultMines : GenerateCountMines();
             SetLabels();
 
@@ -73,10 +77,10 @@ namespace Minesweeper.ClassFolder
             grid.ColumnDefinitions.Clear();
         }
 
-        private void SetLabels()
+        public void SetLabels()
         {
-            minesLbl.Content = $"{CurrentMines}";
-            timeLbl.Content = $"{new TimeSpan().ToString()}";
+            minesLbl.Content = String.Format("{0}", CurrentMines);
+            timeLbl.Content = String.Format("{0}", new TimeSpan().ToString());
         }
 
         public void Init(int rows, int columns, int mines)
@@ -84,6 +88,7 @@ namespace Minesweeper.ClassFolder
             Initialized = true;
             firstClick = false;
             OpenCells = 0;
+            IsFlagStyle = true;
 
             Rows = rows;
             Columns = columns;
@@ -113,7 +118,6 @@ namespace Minesweeper.ClassFolder
                 };
                 grid.ColumnDefinitions.Add(columnDefinition);
             }
-
             SetLabels();
             timer.Start();
         }
@@ -147,7 +151,7 @@ namespace Minesweeper.ClassFolder
                     btn.SetValue(Grid.ColumnProperty, k);
 
                     cells[i, k] = btn;
-                    gameField.CellsStates[i, k] = 0;
+                    gameField.CellsStates[i, k] = CellState.Closed;
                 }
             }
 
@@ -169,21 +173,43 @@ namespace Minesweeper.ClassFolder
             return (int)(Rows * Columns * 0.25);
         }
 
-        private void EndGame(bool win)
+        private void MarkMinesWithFlags()
+        {
+            for (int row = 0; row < Rows; row++)
+            {
+                for (int column = 0; column < Columns; column++)
+                {
+                    if (gameField.CellsStates[row, column] == CellState.Closed)
+                        SetFlag(row, column);
+                }
+            }
+        }
+
+        private void EndGame(bool isWin, bool isFlagStyle)
         {
             timer.Stop();
+
+            if (isFlagStyle)
+                MarkMinesWithFlags();
+
+            GameInfo gameInfo = new GameInfo(Rows * Columns, secondsTimer, isWin, isFlagStyle);
+            AccountGameInfoManager.Update(gameInfo);
+
             secondsTimer = 0;
             grid.IsEnabled = false;
-            if (win)
+
+            if (isWin)
             {
                 restartBtn.Style = resourceDictionary["WinRestartSmile"] as Style;
-                MessageBox.Show("You win!");
+                //MessageBox.Show("You win!");
             }
             else
             {
                 restartBtn.Style = resourceDictionary["LoseRestartSmile"] as Style;
-                MessageBox.Show("You lose!");
+                //MessageBox.Show("You lose!");
             }
+
+            new WindowFolder.WinNotifyWindow(gameInfo).ShowDialog();
         }
 
         private void ShowMines(int rowActiveMine, int columnActiveMine)
@@ -196,11 +222,10 @@ namespace Minesweeper.ClassFolder
                 {
                     if (gameField.IsMine(i, j))
                         cells[i, j].Style = mineStyle;
-                    else if (gameField.CellsStates[i, j] == 2)
+                    else if (gameField.CellsStates[i, j] == CellState.Flagged)
                         cells[i, j].Style = wrongFlagStyle;
                 }
             }
-
             cells[rowActiveMine, columnActiveMine].Style = resourceDictionary["MineActive"] as Style;
         }
 
@@ -209,13 +234,18 @@ namespace Minesweeper.ClassFolder
             return CurrentMines == 0 && OpenCells == (Rows * Columns) - gameField.Mines;
         }
 
+        public bool IsFlagStyleWin()
+        {
+            return IsFlagStyle && OpenCells == (Rows * Columns - gameField.Mines);
+        }
+
         private void OpenCell(int row, int column)
         {
             if (!gameField.IsEmpty(row, column))
             {
                 cells[row, column].Style = resourceDictionary[gameField.Field[row, column].ToString()] as Style;
                 cells[row, column].Content = gameField.Field[row, column].ToString();
-                gameField.CellsStates[row, column] = 1;
+                gameField.CellsStates[row, column] = CellState.Open;
                 OpenCells++;
             }
             else
@@ -230,7 +260,7 @@ namespace Minesweeper.ClassFolder
                     if (!gameField.IsEmpty(point.X, point.Y))
                         cells[point.X, point.Y].Content = gameField.Field[point.X, point.Y].ToString();
 
-                    gameField.CellsStates[point.X, point.Y] = 1;
+                    gameField.CellsStates[point.X, point.Y] = CellState.Open;
                 }
             }
         }
@@ -250,16 +280,16 @@ namespace Minesweeper.ClassFolder
 
         private void SetFlag(int row, int column)
         {
-            if (gameField.CellsStates[row, column] == 0)
+            if (gameField.CellsStates[row, column] == CellState.Closed)
             {
                 cells[row, column].Style = resourceDictionary["Flag"] as Style;
-                gameField.CellsStates[row, column] = 2;
+                gameField.CellsStates[row, column] = CellState.Flagged;
                 minesLbl.Content = Format("{0}", --CurrentMines);
             }
-            else if (gameField.CellsStates[row, column] == 2)
+            else if (gameField.CellsStates[row, column] == CellState.Flagged)
             {
                 cells[row, column].Style = resourceDictionary["Close"] as Style;
-                gameField.CellsStates[row, column] = 0;
+                gameField.CellsStates[row, column] = CellState.Closed;
                 minesLbl.Content = Format("{0}", ++CurrentMines);
             }
         }
@@ -278,32 +308,35 @@ namespace Minesweeper.ClassFolder
                 firstClick = true;
             }
 
-            if (gameField.CellsStates[row, column] == 0)
+            if (gameField.CellsStates[row, column] == CellState.Closed)
             {
                 if (gameField.IsMine(row, column))
                 {
-                    EndGame(false);
+                    EndGame(false, false);
                     ShowMines(row, column);
                 }
                 else
                     OpenCell(row, column);
             }
+            if (IsWin() || IsFlagStyleWin())
+                EndGame(true, IsFlagStyleWin());
 
-            if (IsWin())
-                EndGame(true);
+            //GameInfo gameInfo = new GameInfo(Rows * Columns, 30, false);
+            //AccountGameInfoManager.Update(gameInfo);
         }
 
         public void SetFlag_Click(object sender, RoutedEventArgs e)
         {
             if (firstClick)
             {
+                IsFlagStyle = false;
                 Button btn = (Button)sender;
                 int row = (int)btn.GetValue(Grid.RowProperty);
                 int column = (int)btn.GetValue(Grid.ColumnProperty);
 
                 SetFlag(row, column);
-                if (IsWin())
-                    EndGame(true);
+                if (IsWin() || IsFlagStyleWin())
+                    EndGame(true, IsFlagStyleWin());
             }
         }
     }

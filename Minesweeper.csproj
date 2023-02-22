@@ -58,6 +58,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -75,14 +76,36 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ClassFolder\ByteImageConverter.cs" />
+    <Compile Include="ClassFolder\Converters.cs" />
     <Compile Include="ClassFolder\DataBaseManager.cs" />
     <Compile Include="ClassFolder\Account.cs" />
-    <Compile Include="WindowFolder\AccountAuthorization.xaml.cs">
-      <DependentUpon>AccountAuthorization.xaml</DependentUpon>
+    <Compile Include="ClassFolder\AccountGameInfoManager.cs" />
+    <Compile Include="ClassFolder\GameInfo.cs" />
+    <Compile Include="ClassFolder\Utils.cs" />
+    <Compile Include="SourceFolder\UserControls\RoundAvatar.xaml.cs">
+      <DependentUpon>RoundAvatar.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WindowFolder\AccountRegistration.xaml.cs">
-      <DependentUpon>AccountRegistration.xaml</DependentUpon>
+    <Compile Include="WindowFolder\AccountAuthorizationWindow.xaml.cs">
+      <DependentUpon>AccountAuthorizationWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WindowFolder\AccountRegistrationWindow.xaml.cs">
+      <DependentUpon>AccountRegistrationWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WindowFolder\AccountViewWindow.xaml.cs">
+      <DependentUpon>AccountViewWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WindowFolder\WinNotifyWindow.xaml.cs">
+      <DependentUpon>WinNotifyWindow.xaml</DependentUpon>
+    </Compile>
+    <Page Include="SourceFolder\Themes\General.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SourceFolder\UserControls\RoundAvatar.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="SourceFolder\Dictionaries\DefaultDictionary.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -99,6 +122,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="SourceFolder\UserControls\RoundAvatarStyle.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="WindowFolder\GameWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -113,11 +140,19 @@
     <Compile Include="WindowFolder\GameWindow.xaml.cs">
       <DependentUpon>GameWindow.xaml</DependentUpon>
     </Compile>
-    <Page Include="WindowFolder\AccountAuthorization.xaml">
+    <Page Include="WindowFolder\AccountAuthorizationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="WindowFolder\AccountRegistration.xaml">
+    <Page Include="WindowFolder\AccountRegistrationWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WindowFolder\AccountViewWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WindowFolder\WinNotifyWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -171,6 +206,11 @@
     <Resource Include="SourceFolder\Images\restart_smile4.png" />
     <Resource Include="SourceFolder\Images\user.png" />
     <Resource Include="SourceFolder\Images\wrong_flag.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SourceFolder\Images\no-pictures.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

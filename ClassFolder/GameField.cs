@@ -10,21 +10,30 @@ namespace Minesweeper.ClassFolder
 
         public Point(int x, int y)
         {
-            this.X = x;
-            this.Y = y;
+            X = x;
+            Y = y;
         }
 
         public static bool IsBetweenTwoPoints(Point p1, Point p2, int x, int y)
         {
-            return ((p1.X <= x && p2.X >= x) &&
-                    (p1.Y <= y && p2.Y >= y));
+            return p1.X <= x
+                && p2.X >= x
+                && p1.Y <= y
+                && p2.Y >= y;
         }
+    }
+
+    public enum CellState
+    {
+        Closed,
+        Open,
+        Flagged
     }
 
     internal class GameField
     {
         public int[,] Field { get; set; }
-        public int[,] CellsStates { get; set; } // 0 - Close, 1 - Open, 2 - Flag
+        public CellState[,] CellsStates { get; set; } // 0 - Close, 1 - Open, 2 - Flag
         public int Mines { get; set; }
         public int Rows { get; set; }
         public int Columns { get; set; }
@@ -34,7 +43,7 @@ namespace Minesweeper.ClassFolder
             Rows = rows;
             Columns = columns;
             Field = new int[rows, columns];
-            CellsStates = new int[rows, columns];
+            CellsStates = new CellState[rows, columns];
             FillField();
         }
 
@@ -47,7 +56,7 @@ namespace Minesweeper.ClassFolder
                 for (int j = 0; j < Columns; j++)
                 {
                     Field[i, j] = -2;
-                    CellsStates[i, j] = 0;
+                    CellsStates[i, j] = CellState.Closed;
                 }
             }
         }
@@ -222,7 +231,7 @@ namespace Minesweeper.ClassFolder
                 {
                     point = tempCellsValues[i];
 
-                    if (CellsStates[point.X, point.Y] == 0)
+                    if (CellsStates[point.X, point.Y] == CellState.Closed)
                     {
                         if (IsEmpty(point.X, point.Y))
                             if (!usedEmptyPoses.Contains(point) && !emptyPoses.Contains(point))

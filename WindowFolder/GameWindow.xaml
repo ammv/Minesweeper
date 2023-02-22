@@ -4,14 +4,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Minesweeper.WindowFolder"
+        xmlns:converters="clr-namespace:Minesweeper.ClassFolder.Converters"
         mc:Ignorable="d"
         Title="Minesweeper" Height="400" Width="Auto"
-        Background="#bdbdbd"
-        BorderBrush="#7b7b7b"
-        BorderThickness="3"
         WindowStartupLocation="CenterScreen"
-        SizeToContent="WidthAndHeight"
-        Closing="Window_Closing">
+        Closing="Window_Closing"
+        Style="{DynamicResource WindowStyle}">
+    <Window.Resources>
+        <converters:WindowAccountImageConverter x:Key="windowAccountImageConverter" />
+        <converters:AccountStatusConverter x:Key="accountStatusConverter" />
+    </Window.Resources>
     <Grid>
         <Grid x:Name="Menu" Visibility="Visible" HorizontalAlignment="Center">
             <Grid.ColumnDefinitions>
@@ -30,9 +32,15 @@
                 <RowDefinition Height="25" />
                 <RowDefinition Height="5" />
             </Grid.RowDefinitions>
-            <Image Grid.Row="1" Grid.Column="3"
-                    MouseLeftButtonUp="OpenAccount_Click"
-                    Source="../SourceFolder/images/user.png" Stretch="Uniform" />
+
+            <Ellipse Stroke="Black" StrokeThickness="1" Grid.Row="1" Grid.Column="3"
+                     MouseUp="OpenAccount_Click">
+                <Ellipse.Fill>
+                    <ImageBrush x:Name ="MainAccountImage"
+                                ImageSource="{Binding UserAccount.Avatar, Converter={StaticResource windowAccountImageConverter}}"
+                                Stretch="UniformToFill" />
+                </Ellipse.Fill>
+            </Ellipse>
             <Label x:Name="GameTitle" Content="Сапер"
                    Grid.Row="2" Grid.Column="2"
                    Style="{DynamicResource MainLabel}" />
@@ -114,6 +122,8 @@
                 </Grid>
             </Grid>
             <Label x:Name="AccountStateLbl" Grid.Row="5" Grid.Column="2"
+                   Content="{Binding UserAccount.Status, Converter={StaticResource accountStatusConverter},
+                TargetNullValue='Error'}"
                 Style="{DynamicResource AccountStatusBar}" />
         </Grid>
         <Grid x:Name="Game" Visibility="Hidden" IsEnabled="False" HorizontalAlignment="Center">
@@ -145,53 +155,6 @@
             </Border>
             <Grid x:Name="GameBoard" Grid.Row="1"
                   Width="Auto" Height="Auto " />
-        </Grid>
-        <Grid x:Name="AccountMenu" Visibility="Hidden" IsEnabled="False" HorizontalAlignment="Center">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="10" />
-                <RowDefinition Height="35" />
-
-                <RowDefinition Height="10" />
-                <RowDefinition Height="35" />
-
-                <RowDefinition Height="10" />
-                <RowDefinition Height="35" />
-
-                <RowDefinition Height="10" />
-                <RowDefinition Height="35" />
-
-                <RowDefinition Height="10" />
-                <RowDefinition Height="35" />
-
-                <RowDefinition Height="10" />
-                <RowDefinition Height="35" />
-
-                <RowDefinition Height="10" />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="25" />
-                <ColumnDefinition />
-                <ColumnDefinition Width="25" />
-            </Grid.ColumnDefinitions>
-            <Label
-                Content="{Binding Path=UserAccount.Nickname,TargetNullValue=Ошибка}"
-                Grid.Row="1" Grid.Column="1"
-                Style="{DynamicResource AccountMainLabel}" />
-            <Label
-                Content="{Binding Path=UserAccount.ID,TargetNullValue=Ошибка}"
-                Grid.Row="3" Grid.Column="1"
-                ContentStringFormat="ID: {0}"
-                Style="{DynamicResource AccountDataLabel}" />
-            <Label
-                Content="{Binding Path=UserAccount.Email,TargetNullValue=Ошибка}"
-                Grid.Row="5" Grid.Column="1"
-                ContentStringFormat="Email: {0}"
-                Style="{DynamicResource AccountDataLabel}" />
-            <Label
-                Content="{Binding Path=UserAccount.Password,TargetNullValue=Ошибка}"
-                Grid.Row="7" Grid.Column="1"
-                ContentStringFormat="Password: {0}"
-                Style="{DynamicResource AccountDataLabel}" />
         </Grid>
     </Grid>
 </Window>

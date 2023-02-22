@@ -17,21 +17,45 @@
         <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>
 
-    <Style x:Key="AccountMainLabel" TargetType="Label">
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="HorizontalAlignment" Value="Center" />
-        <Setter Property="FontSize" Value="64" />
-    </Style>
-
-    <Style x:Key="AccountDataLabel" BasedOn="{StaticResource AccountMainLabel}" TargetType="Label">
-        <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="FontSize" Value="32" />
-    </Style>
-
+    <!--Uses in GameWindow-->
     <Style x:Key="AccountStatusBar" BasedOn="{StaticResource Text}" TargetType="Label">
         <Setter Property="Foreground" Value="#7F324150" />
         <Setter Property="FontSize" Value="11" />
         <Setter Property="VerticalAlignment" Value="Top" />
         <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+
+    <!--Uses in Account-->
+    <Style x:Key="AccountLabel" BasedOn="{StaticResource Text}" TargetType="Label">
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Width" Value="230" />
+        <Setter Property="Background" Value="#d9d9d9" />
+    </Style>
+    <Style x:Key="StatisticName" BasedOn="{StaticResource Text}" TargetType="Label">
+        <Setter Property="Width" Value="200" />
+        <Setter Property="FontWeight" Value="Regular" />
+        <Setter Property="Margin" Value="30 0 0 0" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style x:Key="ExperienceLabel" BasedOn="{StaticResource StatisticName}" TargetType="Label">
+        <Setter Property="FontWeight" Value="Regular" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Margin" Value="0 0 0 0" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+    <Style x:Key="StatisticValue" TargetType="TextBlock">
+        <Setter Property="Width" Value="75" />
+        <Setter Property="Margin" Value="50 0 0 0" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Regular" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="FontFamily" Value="Consolas" />
+        <Setter Property="Foreground" Value="#324150" />
+    </Style>
+
+    <Style x:Key="Avatar" TargetType="Ellipse">
     </Style>
 </ResourceDictionary>
