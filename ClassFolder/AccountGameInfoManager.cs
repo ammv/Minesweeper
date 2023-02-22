@@ -29,7 +29,7 @@ namespace Minesweeper.ClassFolder
 
         public static void Update(GameInfo gameInfo)
         {
-            if (userAccount.Status == AccountStatus.Complete)
+            if (userAccount != null && userAccount.Status == AccountStatus.Complete)
             {
                 AddGameCount(userAccount.Statistic.Games + 1);
 

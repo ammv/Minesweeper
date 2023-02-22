@@ -209,7 +209,10 @@ namespace Minesweeper.ClassFolder
                 //MessageBox.Show("You lose!");
             }
 
-            new WindowFolder.WinNotifyWindow(gameInfo).ShowDialog();
+            if (AccountGameInfoManager.userAccount.Status == AccountStatus.Complete)
+            {
+                new WindowFolder.WinNotifyWindow(gameInfo).ShowDialog();
+            }
         }
 
         private void ShowMines(int rowActiveMine, int columnActiveMine)

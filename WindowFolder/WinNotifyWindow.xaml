@@ -14,7 +14,8 @@
         MouseUp="Window_MouseUp"
         WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded"
-        Width="300" Height="200">
+        Width="300" Height="200"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
     <Grid x:Name="InfoGrid">
         <Grid.Resources>
             <Style x:Key="WinLoss" BasedOn="{StaticResource Text}"

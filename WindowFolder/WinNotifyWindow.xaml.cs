@@ -65,7 +65,7 @@ namespace Minesweeper.WindowFolder
         [DllImport("user32.dll")]
         internal static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
 
-        private uint _blurOpacity = 100;
+        private uint _blurOpacity = 25;
 
         public double BlurOpacity
         {
@@ -83,9 +83,9 @@ namespace Minesweeper.WindowFolder
             RankProgressLbl.Content = GameWindow.UserAccount.Rank.ExperienceString;
 
             if (gameInfo.IsWin)
-                InfoGrid.Background = new SolidColorBrush(Color.FromRgb(0xBE, 0xEA, 0xA9));
+                InfoGrid.Background = new SolidColorBrush(Color.FromArgb(128, 0xBE, 0xEA, 0xA9));
             else
-                InfoGrid.Background = new SolidColorBrush(Color.FromRgb(255, 21, 21));
+                InfoGrid.Background = new SolidColorBrush(Color.FromArgb(128, 255, 21, 21));
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -99,7 +99,7 @@ namespace Minesweeper.WindowFolder
 
             var accent = new AccentPolicy();
             accent.AccentState = AccentState.ACCENT_ENABLE_BLURBEHIND;
-            accent.GradientColor = (_blurOpacity << 24) | (_blurBackgroundColor & 0xFFFFFF);
+            //accent.GradientColor = (_blurOpacity << 24) | (_blurBackgroundColor & 0xFFFFFF);
 
             var accentStructSize = Marshal.SizeOf(accent);
 
@@ -119,6 +119,14 @@ namespace Minesweeper.WindowFolder
         private void Window_MouseUp(object sender, MouseButtonEventArgs e)
         {
             Close();
+        }
+
+        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
         }
     }
 }
